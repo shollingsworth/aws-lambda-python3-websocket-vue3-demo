@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
-import getUserState from '@/lib/auth'
-import { getDefault } from '@/lib/auth'
+import AuthState from '@/lib/auth'
 import type { UserState } from '@/lib/auth'
 import { ref } from 'vue'
 
-var us = ref<UserState>(getDefault())
-
-getUserState().then((v) => {
+var us = ref<UserState>(AuthState.getDefault())
+AuthState.getState().then((v) => {
     us.value = v
 })
 </script>

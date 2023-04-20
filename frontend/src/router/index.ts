@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AboutView from '../views/AboutView.vue'
-import Login from '../views/Login.vue'
-import getUserState from '@/lib/auth'
+import Profile from '../views/Profile.vue'
+import PageNotFound from '../views/PageNotFound.vue'
+import AuthState from '@/lib/auth'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,17 +13,22 @@ const router = createRouter({
             component: AboutView
         },
         {
-            path: '/login',
-            name: 'login',
-            component: Login
+            path: '/profile',
+            name: 'profile',
+            component: Profile
         },
+        {
+            path: '/:pathMatch(.*)*',
+            name: '404',
+            component: PageNotFound
+        }
     ]
 })
 
 router.beforeEach(async (to, from) => {
-    const auth = await getUserState()
+    const auth = await AuthState.getState()
     console.log('to', to.path, 'from', from.path, 'isAuthenticated', auth.isAuthenticated)
-    if (to.name !== 'login' && !auth.isAuthenticated) return '/login'
+    if (to.name !== 'profile' && !auth.isAuthenticated) return '/profile'
 })
 
 export default router
