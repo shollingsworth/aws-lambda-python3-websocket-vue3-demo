@@ -1,27 +1,15 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-vue'
-import '@aws-amplify/ui-vue/styles.css'
-const auth = useAuthenticator()
 </script>
 <template>
-    <header>
-        <div class="wrapper">
-            <HelloWorld msg="You did it!" />
-            <authenticator :social-providers="['google']" :hide-sign-up="true">
-                <template v-slot="{ user, signOut }">
-                    <h1>Hello {{ user.username }}!</h1>
-                    <button @click="signOut">Sign Out</button>
-                </template>
-            </authenticator>
-            <nav>
-                <RouterLink to="/">Home</RouterLink>
-            </nav>
-        </div>
-    </header>
-    {{ auth.authStatus }}
-
+    <nav>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/login">Login</RouterLink>
+    </nav>
+    <div class="wrapper">
+        <HelloWorld msg="You did it!" />
+    </div>
     <RouterView />
 </template>
 
@@ -38,9 +26,10 @@ header {
 
 nav {
     width: 100%;
-    font-size: 12px;
+    font-size: 16px;
     text-align: center;
-    margin-top: 2rem;
+    margin-top: 0rem;
+    margin-bottom: 2rem;
 }
 
 nav a.router-link-exact-active {
