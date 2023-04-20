@@ -33,8 +33,8 @@ resource "aws_cognito_user_pool_client" "client" {
     "http://localhost:8080",
   ]
   logout_urls = [
-    "https://${local.prefix}.${local.domain}/logout",
-    "http://localhost:8080/logout",
+    "https://${local.prefix}.${local.domain}",
+    "http://localhost:8080",
   ]
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
