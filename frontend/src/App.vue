@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView  } from 'vue-router'
 import AuthState from '@/lib/auth'
 import type { UserState } from '@/lib/auth'
-import { ref } from 'vue'
+import { ref  } from 'vue'
 
 var us = ref<UserState>(AuthState.getDefault())
 AuthState.getState().then((v) => {
     us.value = v
 })
-
 </script>
 <template>
     <nav>

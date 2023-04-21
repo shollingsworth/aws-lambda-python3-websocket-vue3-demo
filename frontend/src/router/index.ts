@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AboutView from '../views/AboutView.vue'
+import HomePage from '../views/HomePage.vue'
 import Profile from '../views/Profile.vue'
 import PageNotFound from '../views/PageNotFound.vue'
 import AuthState from '@/lib/auth'
@@ -10,7 +10,7 @@ const router = createRouter({
         {
             path: '/',
             name: 'home',
-            component: AboutView
+            component: HomePage
         },
         {
             path: '/profile',
