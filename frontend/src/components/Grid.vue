@@ -9,6 +9,10 @@ const y = ref(0)
 
 const grid = reactive(new CanvasGrid())
 
+const rando = () => {
+    grid.randomActiveCell()
+}
+
 const setactive = () => {
     grid.addActiveCell(x.value, y.value)
 }
@@ -19,14 +23,46 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>
-        <button @click="grid.clearAll">Clear Board</button>
-        <span v-if="grid.hovercell">x: {{ grid.hovercell.x }} y: {{ grid.hovercell.y }} state: {{ grid.mousestate }}</span>
-        <label>X: <input v-model="x" type="input" /></label>
-        <label>Y: <input v-model="y" type="input" /></label>
-        <button @click="setactive" color="green">Active</button>
-        <div>
-            <canvas ref="gridelement"></canvas>
-        </div>
-    </div>
+    <v-container>
+        <v-row>
+            <v-col>
+                <v-btn @click="grid.clearAll()">Clear Board</v-btn>
+            </v-col>
+            <v-col>
+                x: {{ grid.hovercell?.x || 'n/a' }} y: {{ grid.hovercell?.y || 'n/a' }} state:
+                {{ grid.mousestate }}
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <v-text-field v-model="x" label="X" />
+            </v-col>
+            <v-col>
+                <v-text-field v-model="y" label="Y" />
+            </v-col>
+            <v-col>
+                <v-btn @click="setactive" color="green">Active</v-btn>
+                <v-btn @click="rando" color="red">Random</v-btn>
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <canvas ref="gridelement"></canvas>
+            </v-col>
+            <v-col>
+                <v-card>
+                    <v-card-title>Active Cells</v-card-title>
+                    <v-card-text>
+                        <v-list>
+                            <v-list-item>
+                                <v-list-item-title>Title</v-list-item-title>
+                                <v-list-item-subtitle>Subtitle</v-list-item-subtitle>
+                                hello
+                            </v-list-item>
+                        </v-list>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>

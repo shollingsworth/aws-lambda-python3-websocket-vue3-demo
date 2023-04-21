@@ -14,7 +14,7 @@ AuthState.getState().then((v) => {
     <authenticator :social-providers="['google']" :hide-sign-up="true">
         <template v-slot="{ signOut }">
             <h1>Hello {{ us.email }}!</h1>
-            <button @click="signOut">Sign Out</button>
+            <v-btn color="red" @click="signOut">Sign Out</v-btn>
         </template>
     </authenticator>
 </template>

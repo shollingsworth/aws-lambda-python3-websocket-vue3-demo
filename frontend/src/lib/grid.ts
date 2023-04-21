@@ -25,7 +25,7 @@ interface SelectBox {
     y2: number
 }
 
-const ElementSize = 10
+const ElementSize = 12
 const ColorAlertBox = 'orange'
 const ColorAlertCell = 'red'
 const ColorActiveCell = 'blue'
@@ -162,9 +162,9 @@ export class CanvasGrid {
             return this.alertBoxes.some((box) => {
                 return (
                     cell.x >= box.x1 &&
-                    cell.x <= box.x2 &&
+                    cell.x < box.x2 &&
                     cell.y >= box.y1 &&
-                    cell.y <= box.y2 &&
+                    cell.y < box.y2 &&
                     cell.active
                 )
             })
@@ -173,10 +173,17 @@ export class CanvasGrid {
     }
 
     public getCellbyPos(x: number, y: number) {
-        return this.grid[Math.floor(x / ElementSize)][Math.floor(y / ElementSize)]
+        return this.grid[Math.ceil(x / ElementSize)][Math.ceil(y / ElementSize)]
     }
 
     public addActiveCell(x: number, y: number) {
+        this.grid[x][y].active = true
+        this.draw()
+    }
+
+    public randomActiveCell() {
+        const x = Math.floor(Math.random() * this.width)
+        const y = Math.floor(Math.random() * this.height)
         this.grid[x][y].active = true
         this.draw()
     }
