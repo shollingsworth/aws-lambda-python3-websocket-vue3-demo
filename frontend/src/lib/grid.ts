@@ -47,15 +47,10 @@ export class CanvasGrid {
     mouseuppos: { x: number; y: number } = { x: 0, y: 0 }
     mousestate: MouseState = MouseState.up
     mouseTimeout: NodeJS.Timeout | null = null
-    canvasx: number = 0
-    canvasy: number = 0
 
     setup(canvas: HTMLCanvasElement, width: number, height: number) {
         this.canvas = canvas
         this.ctx = this.canvas.getContext('2d')
-        var rect = this.canvas.getBoundingClientRect()
-        this.canvasx = rect.left
-        this.canvasy = rect.top
         this.width = width
         this.height = height
         this.canvas.width = width * ElementSize
@@ -193,7 +188,7 @@ export class CanvasGrid {
     }
 
     private mousePos(event: MouseEvent) {
-        return { x: event.clientX - this.canvasx, y: event.clientY - this.canvasy }
+        return { x: event.offsetX, y: event.offsetY }
     }
 
     private reset() {

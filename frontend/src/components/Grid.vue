@@ -19,21 +19,14 @@ onMounted(() => {
 </script>
 
 <template>
-    <!-- 
     <div>
         <button @click="grid.clearAll">Clear Board</button>
         <span v-if="grid.hovercell">x: {{ grid.hovercell.x }} y: {{ grid.hovercell.y }} state: {{ grid.mousestate }}</span>
-    </div>
-    <hr />
-    -->
-    <div>
-        <span>
-            <label>X: <input v-model="x" type="input" /></label>
-            <label>Y: <input v-model="y" type="input" /></label>
-            <button @click="setactive" color="green">Active</button>
-        </span>
-    </div>
-    <div>
-        <canvas ref="gridelement"></canvas>
+        <label>X: <input v-model="x" type="input" /></label>
+        <label>Y: <input v-model="y" type="input" /></label>
+        <button @click="setactive" color="green">Active</button>
+        <div>
+            <canvas ref="gridelement"></canvas>
+        </div>
     </div>
 </template>
