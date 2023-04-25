@@ -1,0 +1,47 @@
+# Serverless configuration
+
+service: "${file(../config.json):prefix}-backend"
+
+provider:
+    name: aws
+    runtime: python3.9
+    websocketsApiName: "${self:service}-${sls:stage}"
+    websocketsApiRouteSelectionExpression: $request.body.action
+
+plugins:
+    - serverless-python-requirements
+
+custom:
+    pythonRequirements:
+        dockerizePip: true
+        noDeploy: []
+
+functions:
+    connectionManager:
+        handler: app.handler.connection_manager
+        events:
+            - websocket:
+                route: $connect
+            - websocket:
+                route: $disconnect
+    defaultMessage:
+        handler: app.handler.default_message
+        events:
+            - websocket:
+                route: $default
+    getRecentMessages:
+        handler: app.handler.get_recent_messages
+        events:
+            - websocket:
+                route: getRecentMessages
+    sendMessage:
+        handler: app.handler.send_message
+        events:
+            - websocket:
+                route: sendMessage
+    ping:
+        handler: app.handler.ping
+        events:
+            - http:
+                path: ping
+                method: get

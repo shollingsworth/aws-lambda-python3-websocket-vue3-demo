@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "show": "serverless info"
+  },
+  "author": "Steven Hollingsworth <hollingsworth.stevend@gmail.com>",
+  "license": "BSD",
+  "dependencies": {
+    "serverless": "^3.30.1",
+    "serverless-python-requirements": "^6.0.0"
+  }
+}
