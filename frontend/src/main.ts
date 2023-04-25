@@ -5,6 +5,7 @@ import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import AppConfig from '@/lib/config'
 
 Amplify.configure({
     Auth: {
@@ -14,16 +15,16 @@ Amplify.configure({
         oauth: {
             domain: 'sh-ws-demo.auth.us-east-2.amazoncognito.com',
             scope: ['email', 'openid'],
-            redirectSignIn: 'http://localhost:8080',
-            redirectSignOut: 'http://localhost:8080',
+            redirectSignIn: AppConfig.redirectUrl,
+            redirectSignOut: AppConfig.redirectUrl,
             responseType: 'code'
         }
     }
 })
 
 const vuetify = createVuetify({
-  components,
-  directives,
+    components,
+    directives
 })
 
 import App from './App.vue'

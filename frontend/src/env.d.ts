@@ -1,6 +1,5 @@
 interface ImportMetaEnv {
-    readonly VITE_COGNITO_CLIENT_ID: string
-    readonly VITE_COGNITO_POOL_ID: string
+    readonly VITE_STAGE: string
 }
 
 interface ImportMeta {
