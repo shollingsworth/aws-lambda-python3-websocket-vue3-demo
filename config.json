@@ -1,5 +1,6 @@
 {
     "domain": "stev0.me",
     "prefix": "sh-ws-demo",
-    "source": "https://github.com/shollingsworth/aws-lambda-python3-websocket-vue3-demo"
+    "repo_name": "aws-lambda-python3-websocket-vue3-demo",
+    "repo_owner": "shollingsworth"
 }

@@ -2,7 +2,17 @@ provider "aws" {
   region = "us-east-2"
   default_tags {
     tags = {
-      source-control = local.source
+      source-control = "https://github.com/${local.repo_owner}/${local.repo_name}"
+    }
+  }
+}
+
+provider "aws" {
+  alias = "useast"
+  region = "us-east-1"
+  default_tags {
+    tags = {
+      source-control = "https://github.com/${local.repo_owner}/${local.repo_name}"
     }
   }
 }

@@ -2,8 +2,13 @@
 locals {
   jdata = jsondecode(file("${path.module}/../config.json"))
   prefix = local.jdata.prefix
-  source = local.jdata.source
+  repo_name = local.jdata.repo_name
+  repo_owner = local.jdata.repo_owner
   domain = local.jdata.domain
+  stages = {
+    "dev": "${local.prefix}-dev.${local.domain}",
+    "prod": "${local.prefix}.${local.domain}"
+  }
 }
 
 data "aws_caller_identity" "current" {}
