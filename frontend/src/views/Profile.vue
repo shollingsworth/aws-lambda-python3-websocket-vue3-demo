@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
-import AuthState, { type UserState } from '@/lib/auth'
-import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
-var us = ref<UserState>(AuthState.getDefault())
-AuthState.getState().then((v) => {
-    us.value = v
-})
+const us = useAuthStore()
 </script>
 <template>
     <authenticator :social-providers="['google']" :hide-sign-up="true">

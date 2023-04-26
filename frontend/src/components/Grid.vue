@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { CanvasGrid } from '@/lib/grid'
-import AuthState, { type UserState } from '@/lib/auth'
-import Config from '@/lib/config'
 
 const gridelement = ref()
 const x = ref(0)
@@ -19,27 +17,13 @@ const setactive = () => {
 }
 
 onMounted(() => {
-    grid.setup(gridelement.value, 50, 50)
-    AuthState.getState().then((state: UserState) => {
-        if (!state.idJwtToken) {
-            console.log("no jwt token")
-            return
-        }
-        const ws = new WebSocket(Config.wsUrl(state.idJwtToken))
-        ws.onopen = () => {
-            console.log("ws open")
-        }
-        ws.onmessage = (msg) => {
-            console.log("ws message", msg)
-        }
-        ws.onclose = () => {
-            console.log("ws close")
-        }
-        ws.onerror = (err) => {
-            console.log("ws error", err)
-        }
-    })
+    grid.setup(gridelement.value)
 })
+
+onUnmounted(() => {
+    grid.close()
+})
+
 </script>
 
 <template>
@@ -67,7 +51,7 @@ onMounted(() => {
         </v-row>
         <v-row>
             <v-col>
-                <canvas ref="gridelement"></canvas>
+                <canvas ref="gridelement" />
             </v-col>
             <v-col>
                 <v-card>

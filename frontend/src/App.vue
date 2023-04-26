@@ -1,33 +1,55 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import AuthState, { type UserState } from '@/lib/auth'
 import AppConfig from '@/lib/config'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
+import { Hub } from 'aws-amplify'
+import { useAuthStore } from '@/stores/auth'
+import type { CognitoUser } from 'amazon-cognito-identity-js'
 
-var us = ref<UserState>(AuthState.getDefault())
+const auth = useAuthStore()
 
-AuthState.getState().then((v) => {
-    us.value = v
+const hubListener = Hub.listen('auth', (data) => {
+    switch (data.payload.event) {
+        case 'tokenRefresh':
+            auth.loadCreds()
+            break
+        case 'signIn':
+            const user = data.payload.data as CognitoUser
+            auth.setValues(user)
+            break
+        case 'oAuthSignOut':
+            console.log('oAuthSignOut')
+            auth.clearCreds()
+            break
+        case 'signOut':
+            console.log('user signed out')
+            auth.clearCreds()
+            break
+        case 'signIn_failure':
+            console.log('user sign in failed')
+            auth.clearCreds()
+            break
+    }
+})
+
+onUnmounted(() => {
+    hubListener()
 })
 
 const config = ref(AppConfig)
-
 </script>
 <template>
     <v-app>
         <v-main>
             <v-app-bar app>
                 <v-toolbar-title>
-                Griddle
-                <v-chip>{{ config.stage }}</v-chip>
+                    Griddle
+                    <v-chip>{{ config.stage }}</v-chip>
+                    <v-btn :to='{name: "home"}'>Home</v-btn>
                 </v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-btn text>Test</v-btn>
+                <v-btn :to='{name: "profile"}'>{{ auth.linkname }}</v-btn>
             </v-app-bar>
-            <v-tabs fixed-tabs>
-                <v-tab to="/">Home</v-tab>
-                <v-tab to="/profile">{{ us.linkname }}</v-tab>
-            </v-tabs>
             <RouterView />
         </v-main>
     </v-app>

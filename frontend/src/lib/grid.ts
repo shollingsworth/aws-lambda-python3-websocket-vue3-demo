@@ -1,21 +1,10 @@
-export interface Cell {
-    x: number
-    y: number
-    active: boolean
-}
+import type { Cell, AlertBox } from '@/lib/types'
+import { useAuthStore } from '@/stores/auth'
 
 enum MouseState {
     down = 'down',
     longdown = 'longdown',
     up = 'up'
-}
-
-interface AlertBox {
-    name: string
-    x1: number
-    y1: number
-    x2: number
-    y2: number
 }
 
 interface SelectBox {
@@ -25,6 +14,7 @@ interface SelectBox {
     y2: number
 }
 
+const gridSize = 50
 const ElementSize = 12
 const ColorAlertBox = 'orange'
 const ColorAlertCell = 'red'
@@ -34,7 +24,6 @@ const ColorBackground = 'white'
 const ColorGrid = 'black'
 
 export class CanvasGrid {
-    grid: Cell[][] = []
     hovercell: Cell | null = null
     width: number = 0
     height: number = 0
@@ -47,18 +36,40 @@ export class CanvasGrid {
     mouseuppos: { x: number; y: number } = { x: 0, y: 0 }
     mousestate: MouseState = MouseState.up
     mouseTimeout: NodeJS.Timeout | null = null
+    grid: Cell[][] = []
+    websocket: WebSocket | null = null
 
-    setup(canvas: HTMLCanvasElement, width: number, height: number) {
+    setup(canvas: HTMLCanvasElement) {
+        const auth = useAuthStore()
+        this.websocket = new WebSocket(auth.wsUrl)
         this.canvas = canvas
         this.ctx = this.canvas.getContext('2d')
-        this.width = width
-        this.height = height
-        this.canvas.width = width * ElementSize
-        this.canvas.height = height * ElementSize
-        this.grid = []
+        this.width = gridSize
+        this.height = gridSize
+        this.canvas.width = this.width * ElementSize
+        this.canvas.height = this.height * ElementSize
         this.initGrid()
         this.draw()
         this.listen()
+    }
+
+    private send_action(action: string, data: any) {
+        if (this.websocket) {
+            const dat = { action: action, message: data }
+            console.log("sending action", dat)
+            this.websocket.send(JSON.stringify(dat))
+        }
+    }
+
+    private process_action(event: MessageEvent) {
+        const data = JSON.parse(event.data)
+        console.log('process action', data)
+        if (data.action == 'alert_boxes') {
+            this.alertBoxes = data.message
+            console.log('alert boxes', this.alertBoxes)
+            this.draw()
+            console.log('drawn')
+        }
     }
 
     // listen for changes and redraw
@@ -67,6 +78,28 @@ export class CanvasGrid {
         this.canvas?.addEventListener('mouseup', (event: MouseEvent) => this.onMouseUp(event))
         this.canvas?.addEventListener('mousemove', (event: MouseEvent) => this.onMouseMove(event))
         this.canvas?.addEventListener('mouseout', (event: MouseEvent) => this.onMouseOut(event))
+
+        this.websocket?.addEventListener('open', (event: Event) => {
+            console.log('websocket opened', event)
+            this.send_action('send_alert_boxes', {})
+        })
+
+        this.websocket?.addEventListener('message', (event: MessageEvent) => {
+            console.log('message received', event.data)
+            this.process_action(event)
+        })
+
+        this.websocket?.addEventListener('close', (event: CloseEvent) => {
+            console.log('websocket closed', event)
+        })
+
+        this.websocket?.addEventListener('error', (event: Event) => {
+            console.log('websocket error', event)
+        })
+    }
+
+    public close() {
+        this.websocket?.close()
     }
 
     private initGrid() {
@@ -236,8 +269,10 @@ export class CanvasGrid {
                 x2: Math.ceil(this.mouseuppos.x / ElementSize),
                 y2: Math.ceil(this.mouseuppos.y / ElementSize)
             })
+            // copy selectbox
+            const box = JSON.parse(JSON.stringify(this.selectBox))
             this.selectBox = null
-            this.draw()
+            this.send_action("save_alert_box", box)
         }
     }
 
