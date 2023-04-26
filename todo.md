@@ -2,7 +2,6 @@
 
 -   local env
 
-    -   .in
     -   STAGE based on branch
 
 -   github
@@ -24,16 +23,17 @@
 
     -   naming alert boxes
     -   websocket api
+    -   pinia websocket grid handler
 
--   backend
-    -   lambdas
-        -   websocket
-            -   https://github.com/lgoodridge/serverless-chat/blob/master/backend/serverless.yml
-            -   https://github.com/lgoodridge/serverless-chat/blob/master/backend/handler.py
-        -   token handling auth https://github.com/claytantor/serverless-cognito-api/blob/master/auth.py
-        -   serverless offline https://www.serverless.com/plugins/serverless-offline#websocket
+-   tf
+    -   setup deploy role
+        -   https://dav009.medium.com/serverless-framework-minimal-iam-role-permissions-ba34bec0154e
 
 # Complete
+
+-   local env
+
+    -   .in
 
 -   tf
 
@@ -44,7 +44,16 @@
     -   setup exec role
 
 -   webui
+
     -   setup
     -   grid
     -   configurable selection of grid
     -   stage
+
+-   backend
+    -   lambdas
+        -   websocket
+            -   https://github.com/lgoodridge/serverless-chat/blob/master/backend/serverless.yml
+            -   https://github.com/lgoodridge/serverless-chat/blob/master/backend/handler.py
+        -   token handling auth https://github.com/claytantor/serverless-cognito-api/blob/master/auth.py
+        -   serverless offline https://www.serverless.com/plugins/serverless-offline#websocket

@@ -1,1 +1,5 @@
 source $(poetry env info --path)/bin/activate
+case ":$PYTHONPATH:" in
+  *:${PWD}/:*) ;;
+  *) export PYTHONPATH="${PYTHONPATH}:${PWD}/" ;;
+esac

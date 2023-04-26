@@ -1,3 +1,5 @@
+DIR="$( cd "$( dirname "$0" )" && pwd )"
 export AWS_PROFILE="personal"
 export AWS_REGION="us-east-2"
 export VITE_STAGE="local"
+export TOKEN=$(cat "${DIR}/.token")
