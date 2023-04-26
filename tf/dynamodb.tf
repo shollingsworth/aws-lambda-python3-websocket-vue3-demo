@@ -14,5 +14,4 @@ resource "aws_dynamodb_table" "dyn" {
     name = "type"
     type = "S"
   }
-
 }

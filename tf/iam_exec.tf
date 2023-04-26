@@ -39,9 +39,30 @@ data "aws_iam_policy_document" "policy-execrole" {
       aws_dynamodb_table.dyn["dev"].arn,
     ]
   }
+
+  statement {
+    # allow this to post to websockets
+    actions = [
+      "execute-api:ManageConnections"
+    ]
+    resources = [
+      "*"
+    ]
+  }
 }
 
 resource "aws_iam_role" "execrole" {
   assume_role_policy = data.aws_iam_policy_document.assume-execrole.json
-  name               = "${local.prefix}-execrole"
+  inline_policy {
+    name   = "policy-execrole"
+    policy = data.aws_iam_policy_document.policy-execrole.json
+  }
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  ]
+  name = "${local.prefix}-execrole"
+}
+
+output "exec_role" {
+  value = aws_iam_role.execrole.arn
 }
