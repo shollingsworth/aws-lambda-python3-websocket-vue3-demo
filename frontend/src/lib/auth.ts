@@ -5,7 +5,8 @@ export interface UserState {
     isAuthenticated: boolean
     username: string | null
     email: string | null
-    jwtToken: string | null
+    authJwtToken: string | null
+    idJwtToken: string | null
     linkname: string | null
 }
 
@@ -21,7 +22,8 @@ class AuthState {
                     isAuthenticated: true,
                     username: user.getUsername() || null,
                     email: idtoken?.payload.email.toString() || null,
-                    jwtToken: atoken?.getJwtToken() || null
+                    authJwtToken: atoken?.getJwtToken() || null,
+                    idJwtToken: idtoken?.getJwtToken() || null
                 }
             })
             .catch((err) => {
@@ -31,7 +33,8 @@ class AuthState {
                     isAuthenticated: false,
                     username: null,
                     email: null,
-                    jwtToken: null
+                    authJwtToken: null,
+                    idJwtToken: null
                 }
             })
     }
@@ -41,7 +44,8 @@ class AuthState {
             isAuthenticated: false,
             username: null,
             email: null,
-            jwtToken: null
+            authJwtToken: null,
+            idJwtToken: null
         }
     }
 }

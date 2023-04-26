@@ -18,7 +18,7 @@ const config = ref(AppConfig)
         <v-main>
             <v-app-bar app>
                 <v-toolbar-title>
-                Gridder
+                Griddle
                 <v-chip>{{ config.stage }}</v-chip>
                 </v-toolbar-title>
                 <v-spacer></v-spacer>

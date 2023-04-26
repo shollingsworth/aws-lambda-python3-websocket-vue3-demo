@@ -14,8 +14,8 @@ AuthState.getState().then((v) => {
         <template v-slot="{ signOut }">
             <h1>Hello {{ us.email }}!</h1>
             <v-btn color="red" @click="signOut">Sign Out</v-btn>
+            <code>{{ JSON.stringify(us, null, 2) }}</code>
             <!-- 
-            <pre>{{ JSON.stringify(us, null, 2) }}</pre>
             -->
         </template>
     </authenticator>
