@@ -26,12 +26,6 @@ def message(event, _):
     return WebSocketMessageHandler(event).handle_message()
 
 
-def ping(event, _):
-    """Handle a ping event."""
-    logger.info("Ping requested: %s", event)
-    return {"statusCode": 200, "body": "pong"}
-
-
 if __name__ == "__main__":
     # the following is useful to make this script executable in both
     # AWS Lambda and any other local environments
