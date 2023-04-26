@@ -3,45 +3,42 @@
 service: "${file(../config.json):prefix}-backend"
 
 provider:
-    name: aws
-    runtime: python3.9
-    websocketsApiName: "${self:service}-${sls:stage}"
-    websocketsApiRouteSelectionExpression: $request.body.action
+  name: aws
+  runtime: python3.9
+  region: "us-east-2"
+  iam:
+    role: "arn:aws:iam::668805947503:role/sh-ws-demo-execrole"
+  websocketsApiName: "${self:service}-${sls:stage}"
+  websocketsApiRouteSelectionExpression: $request.body.action
+  environment:
+    STAGE: "${sls:stage}"
+    PREFIX: "${file(../config.json):prefix}"
 
 plugins:
-    - serverless-python-requirements
+  - serverless-python-requirements
+  - serverless-offline
 
 custom:
-    pythonRequirements:
-        dockerizePip: true
-        noDeploy: []
+  pythonRequirements:
+    dockerizePip: true
+    noDeploy: []
 
 functions:
-    connectionManager:
-        handler: app.handler.connection_manager
-        events:
-            - websocket:
-                route: $connect
-            - websocket:
-                route: $disconnect
-    defaultMessage:
-        handler: app.handler.default_message
-        events:
-            - websocket:
-                route: $default
-    getRecentMessages:
-        handler: app.handler.get_recent_messages
-        events:
-            - websocket:
-                route: getRecentMessages
-    sendMessage:
-        handler: app.handler.send_message
-        events:
-            - websocket:
-                route: sendMessage
-    ping:
-        handler: app.handler.ping
-        events:
-            - http:
-                path: ping
-                method: get
+  connectionManager:
+    handler: handler.connect
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+  defaultMessage:
+    handler: handler.message
+    events:
+      - websocket:
+          route: $default
+  ping:
+    handler: handler.ping
+    events:
+      - http:
+          path: ping
+          method: get
