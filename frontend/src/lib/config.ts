@@ -16,8 +16,8 @@ class AppConfig {
         return this.stage === 'local'
             ? 'ws://localhost:3001/ws?token=' + token
             : this.stage === 'dev'
-            ? 'wss://xbbv6yjs83.execute-api.us-east-2.amazonaws.com/dev/ws?token=' + token
-            : 'wss://yrmpqpmbf7.execute-api.us-east-2.amazonaws.com/prod/ws?token=' + token
+            ? 'wss://xbbv6yjs83.execute-api.us-east-2.amazonaws.com/dev?token=' + token
+            : 'wss://yrmpqpmbf7.execute-api.us-east-2.amazonaws.com/prod?token=' + token
     }
 }
 
