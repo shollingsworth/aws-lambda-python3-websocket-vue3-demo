@@ -6,8 +6,8 @@ import AppConfig from '@/lib/config'
 
 export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = ref(false)
-    const username = ref('')
-    const email = ref('')
+    const username = ref('not logged in')
+    const email = ref('not logged in')
     const authJwtToken = ref('')
     const idJwtToken = ref('')
     const linkname = ref('Login')
@@ -16,11 +16,20 @@ export const useAuthStore = defineStore('auth', () => {
     const clearCreds = () => {
         wsUrl.value = ''
         isAuthenticated.value = false
-        username.value = ''
-        email.value = ''
+        username.value = 'not logged in'
+        email.value = 'not logged in'
         authJwtToken.value = ''
         idJwtToken.value = ''
         linkname.value = 'Login'
+    }
+
+    const signOut = async () => {
+        try {
+            await Auth.signOut()
+            clearCreds()
+        } catch (err) {
+            console.log(err)
+        }
     }
 
     const loadCreds = async () => {
@@ -53,6 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     return {
+        signOut,
         loadCreds,
         setValues,
         wsUrl,

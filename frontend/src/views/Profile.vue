@@ -10,8 +10,8 @@ const us = useAuthStore()
         <template v-slot="{ signOut }">
             <h1>Hello {{ us.email }}!</h1>
             <v-btn color="red" @click="signOut">Sign Out</v-btn>
-            <code>{{ JSON.stringify(us, null, 2) }}</code>
             <!-- 
+            <code>{{ JSON.stringify(us, null, 2) }}</code>
             -->
         </template>
     </authenticator>

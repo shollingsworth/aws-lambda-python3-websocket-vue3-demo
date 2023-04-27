@@ -3,9 +3,11 @@ import { createPinia } from 'pinia'
 import { Amplify } from 'aws-amplify'
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
+import ToastPlugin from 'vue-toast-notification';
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import AppConfig from '@/lib/config'
+import 'vue-toast-notification/dist/theme-bootstrap.css';
 
 Amplify.configure({
     Auth: {
@@ -37,4 +39,5 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.use(vuetify)
+app.use(ToastPlugin)
 app.mount('#app')

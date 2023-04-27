@@ -1,6 +1,7 @@
 import type { Cell, AlertBox } from '@/lib/types'
 import { useAuthStore } from '@/stores/auth'
 import { useGeneralStore } from '@/stores/general'
+import { useToast, type ToastProps } from 'vue-toast-notification'
 
 enum MouseState {
     down = 'down',
@@ -84,9 +85,60 @@ export class CanvasGrid {
                 const gen = useGeneralStore()
                 gen.setConnectionId(data.message)
                 break
+            case 'add_active_cell':
+                this.grid[data.message.x][data.message.y].active = true
+                this.draw()
+                this.toast('info', 'cell ' + data.message.x + ',' + data.message.y + ' is now active')
+                break
+            case 'alert':
+                this.toast('warning', data.message)
+                break
             default:
                 console.log('unknown action', data.action, data)
         }
+    }
+
+    private toast(type: string, message: string) {
+        const t = useToast()
+        const opt: ToastProps = {
+            duration: 3000,
+            position: 'bottom-right',
+            dismissible: true,
+            pauseOnHover: true,
+        }
+        switch (type) {
+            case 'info':
+                t.info(message, opt)
+                break
+            case 'success':
+                t.success(message, opt)
+                break
+            case 'error':
+                t.error(message, opt)
+                break
+            case 'warning':
+                t.warning(message, opt)
+                break
+            default:
+                console.error('unknown toast type', type)
+        }
+
+    }
+
+    public testToast() {
+        // random type
+        const types = ['info', 'success', 'error', 'warning']
+        const idx = Math.floor(Math.random() * types.length)
+        const msg = 'test toast ' + types[idx]
+        this.toast(types[idx], msg)
+    }
+
+    public clearBackendState() {
+        this.send_action('clear_backend_state', {})
+    }
+
+    public clearAlertBoxes() {
+        this.send_action('clear_alert_boxes', {})
     }
 
     private setAllActiveCells(cells: ActiveCell[]) {

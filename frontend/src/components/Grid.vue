@@ -3,11 +3,11 @@ import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { CanvasGrid } from '@/lib/grid'
 
 const gridelement = ref()
-const x = ref(0)
-const y = ref(0)
-
 const grid = reactive(new CanvasGrid())
 
+/**
+const x = ref(0)
+const y = ref(0)
 const rando = () => {
     grid.randomActiveCell()
 }
@@ -15,6 +15,7 @@ const rando = () => {
 const setactive = () => {
     grid.addActiveCell(x.value, y.value)
 }
+*/
 
 onMounted(() => {
     grid.setup(gridelement.value)
@@ -30,13 +31,16 @@ onUnmounted(() => {
     <v-container>
         <v-row>
             <v-col>
-                <v-btn @click="grid.clearAll()">Clear Board</v-btn>
+                <v-btn color="orange" @click="grid.clearAlertBoxes()">Clear Alert Boxes</v-btn>
+                <v-btn color="red" @click="grid.clearBackendState()">Clear BackendState</v-btn>
             </v-col>
             <v-col>
                 x: {{ grid.hovercell?.x || 'n/a' }} y: {{ grid.hovercell?.y || 'n/a' }} state:
                 {{ grid.mousestate }}
             </v-col>
         </v-row>
+        <!-- 
+                <v-btn color="blue" @click="grid.testToast()">Test Toast</v-btn>
         <v-row>
             <v-col>
                 <v-text-field v-model="x" label="X" />
@@ -49,10 +53,6 @@ onUnmounted(() => {
                 <v-btn @click="rando" color="red">Random</v-btn>
             </v-col>
         </v-row>
-        <v-row>
-            <v-col>
-                <canvas ref="gridelement" />
-            </v-col>
             <v-col>
                 <v-card>
                     <v-card-title>Active Cells</v-card-title>
@@ -66,6 +66,11 @@ onUnmounted(() => {
                         </v-list>
                     </v-card-text>
                 </v-card>
+            </v-col>
+        -->
+        <v-row>
+            <v-col>
+                <canvas ref="gridelement" />
             </v-col>
         </v-row>
     </v-container>

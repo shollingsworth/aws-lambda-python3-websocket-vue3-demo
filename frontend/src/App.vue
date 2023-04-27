@@ -49,8 +49,9 @@ const config = ref(AppConfig)
                     <v-chip>{{ config.stage }}</v-chip>
                 </v-toolbar-title>
                 <v-chip :color="general.color">{{ general.connectionId }}</v-chip>
+                <v-chip v-if="auth.isAuthenticated">{{ auth.email }}</v-chip>
                 <v-btn :to="{ name: 'home' }">Home</v-btn>
-                <v-btn :to="{ name: 'profile' }">{{ auth.linkname }}</v-btn>
+                <v-btn v-if="auth.isAuthenticated" color="red" @click="auth.signOut">Sign Out</v-btn>
             </v-app-bar>
             <RouterView />
         </v-main>
