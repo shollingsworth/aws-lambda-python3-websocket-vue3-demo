@@ -53,6 +53,17 @@ data "aws_iam_policy_document" "policy-execrole" {
       "*"
     ]
   }
+
+  statement {
+    # allow this to post to websockets
+    actions = [
+      "sns:Publish",
+    ]
+    resources = [
+      aws_sns_topic.user_updates["prod"].arn,
+      aws_sns_topic.user_updates["dev"].arn,
+    ]
+  }
 }
 
 resource "aws_iam_role" "execrole" {
