@@ -29,13 +29,13 @@ custom:
     noDeploy: []
 
 functions:
-  dynamoDBStream:
-    handler: handler.dynstream
-    timeout: 30
-    events:
-      - stream:
-          type: dynamodb
-          arn: ${ssm:/${self:custom.prefix}/${sls:stage}/dynamodb_stream_arn}
+  # dynamoDBStream:
+  #   handler: handler.dynstream
+  #   timeout: 30
+  #   events:
+  #     - stream:
+  #         type: dynamodb
+  #         arn: ${ssm:/${self:custom.prefix}/${sls:stage}/dynamodb_stream_arn}
 
   connectionManager:
     handler: handler.connect
@@ -51,11 +51,11 @@ functions:
       - websocket:
           route: $default
 
-  schedule_random:
-    handler: handler.schedule_random
-    timeout: 70
-    events:
-      - schedule: rate(1 minute)
+  # schedule_random:
+  #   handler: handler.schedule_random
+  #   timeout: 70
+  #   events:
+  #     - schedule: rate(1 minute)
 
   sns_router:
     handler: handler.sns

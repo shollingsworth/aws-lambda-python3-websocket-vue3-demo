@@ -8,7 +8,9 @@
         "show": "serverless info",
         "offline": "poetry export > requirements.txt && AWS_SDK_LOAD_CONFIG=1 serverless offline start --reloadHandler",
         "deploy_dev": "poetry export > requirements.txt && AWS_SDK_LOAD_CONFIG=1 serverless deploy --stage dev",
-        "deploy_prod": "poetry export > requirements.txt && AWS_SDK_LOAD_CONFIG=1 serverless deploy --stage prod"
+        "deploy_prod": "poetry export > requirements.txt && AWS_SDK_LOAD_CONFIG=1 serverless deploy --stage prod",
+        "destroy_prod": "AWS_SDK_LOAD_CONFIG=1 serverless remove --stage prod",
+        "destroy_dev": "AWS_SDK_LOAD_CONFIG=1 serverless remove --stage dev"
     },
     "author": "Steven Hollingsworth <hollingsworth.stevend@gmail.com>",
     "license": "BSD",
