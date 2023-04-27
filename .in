@@ -2,4 +2,5 @@ DIR="$( cd "$( dirname "$0" )" && pwd )"
 export AWS_PROFILE="personal"
 export AWS_REGION="us-east-2"
 export VITE_STAGE="local"
-export TOKEN=$(cat "${DIR}/.token")
+# export TOKEN=$(cat "${DIR}/.token")
+# export SNS_TOPIC="arn:aws:sns:us-east-2:668805947503:sh-ws-demo-dev20230427145206341500000003"
