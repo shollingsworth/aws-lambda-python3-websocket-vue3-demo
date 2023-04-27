@@ -19,11 +19,19 @@ plugins:
   - serverless-offline
 
 custom:
+  prefix: "${file(../config.json):prefix}"
   pythonRequirements:
     dockerizePip: true
     noDeploy: []
 
 functions:
+  dynamoDBStream:
+    handler: handler.dynstream
+    events:
+      - stream:
+          type: dynamodb
+          arn: ${ssm:/${self:custom.prefix}/${sls:stage}/dynamodb_stream_arn}
+
   connectionManager:
     handler: handler.connect
     events:
@@ -36,9 +44,3 @@ functions:
     events:
       - websocket:
           route: $default
-  ping:
-    handler: handler.ping
-    events:
-      - http:
-          path: ping
-          method: get
