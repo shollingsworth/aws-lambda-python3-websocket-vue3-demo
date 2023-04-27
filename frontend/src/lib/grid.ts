@@ -1,10 +1,16 @@
 import type { Cell, AlertBox } from '@/lib/types'
 import { useAuthStore } from '@/stores/auth'
+import { useGeneralStore } from '@/stores/general'
 
 enum MouseState {
     down = 'down',
     longdown = 'longdown',
     up = 'up'
+}
+
+interface ActiveCell {
+    x: number
+    y: number
 }
 
 interface SelectBox {
@@ -51,12 +57,13 @@ export class CanvasGrid {
         this.initGrid()
         this.draw()
         this.listen()
+        this.listenWebSocket()
     }
 
     private send_action(action: string, data: any) {
         if (this.websocket) {
             const dat = { action: action, message: data }
-            console.log("sending action", dat)
+            console.log('sending action', dat)
             this.websocket.send(JSON.stringify(dat))
         }
     }
@@ -64,24 +71,44 @@ export class CanvasGrid {
     private process_action(event: MessageEvent) {
         const data = JSON.parse(event.data)
         console.log('process action', data)
-        if (data.action == 'alert_boxes') {
-            this.alertBoxes = data.message
-            console.log('alert boxes', this.alertBoxes)
-            this.draw()
-            console.log('drawn')
+        switch (data.action) {
+            case 'alert_boxes':
+                this.alertBoxes = data.message
+                console.log('alert boxes', this.alertBoxes)
+                this.draw()
+                break
+            case 'all_active_cells':
+                this.setAllActiveCells(data.message)
+                break
+            case 'connection_id':
+                const gen = useGeneralStore()
+                gen.setConnectionId(data.message)
+                break
+            default:
+                console.log('unknown action', data.action, data)
         }
     }
 
-    // listen for changes and redraw
-    public listen() {
-        this.canvas?.addEventListener('mousedown', (event: MouseEvent) => this.onMouseDown(event))
-        this.canvas?.addEventListener('mouseup', (event: MouseEvent) => this.onMouseUp(event))
-        this.canvas?.addEventListener('mousemove', (event: MouseEvent) => this.onMouseMove(event))
-        this.canvas?.addEventListener('mouseout', (event: MouseEvent) => this.onMouseOut(event))
+    private setAllActiveCells(cells: ActiveCell[]) {
+        this.grid.forEach((row) => {
+            row.forEach((cell) => {
+                cell.active = false
+            })
+        })
+        cells.forEach((cell) => {
+            this.grid[cell.x][cell.y].active = true
+        })
+        this.draw()
+    }
 
+    public listenWebSocket() {
+        const gen = useGeneralStore()
+        gen.isConnecting()
         this.websocket?.addEventListener('open', (event: Event) => {
             console.log('websocket opened', event)
             this.send_action('send_alert_boxes', {})
+            this.send_action('send_all_active_cells', {})
+            this.send_action('send_connection_id', {})
         })
 
         this.websocket?.addEventListener('message', (event: MessageEvent) => {
@@ -90,12 +117,21 @@ export class CanvasGrid {
         })
 
         this.websocket?.addEventListener('close', (event: CloseEvent) => {
+            gen.resetConnectionId()
             console.log('websocket closed', event)
         })
 
         this.websocket?.addEventListener('error', (event: Event) => {
             console.log('websocket error', event)
         })
+    }
+
+    // listen for changes and redraw
+    public listen() {
+        this.canvas?.addEventListener('mousedown', (event: MouseEvent) => this.onMouseDown(event))
+        this.canvas?.addEventListener('mouseup', (event: MouseEvent) => this.onMouseUp(event))
+        this.canvas?.addEventListener('mousemove', (event: MouseEvent) => this.onMouseMove(event))
+        this.canvas?.addEventListener('mouseout', (event: MouseEvent) => this.onMouseOut(event))
     }
 
     public close() {
@@ -272,7 +308,7 @@ export class CanvasGrid {
             // copy selectbox
             const box = JSON.parse(JSON.stringify(this.selectBox))
             this.selectBox = null
-            this.send_action("save_alert_box", box)
+            this.send_action('save_alert_box', box)
         }
     }
 
