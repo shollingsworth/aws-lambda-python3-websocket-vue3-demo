@@ -33,10 +33,14 @@ data "aws_iam_policy_document" "policy-execrole" {
       "dynamodb:Delete*",
       "dynamodb:BatchWrite*",
       "dynamodb:BatchGet*",
+      "dynamodb:DescribeStream",
+      "dynamodb:ListStreams",
     ]
     resources = [
       aws_dynamodb_table.dyn["prod"].arn,
       aws_dynamodb_table.dyn["dev"].arn,
+      aws_dynamodb_table.dyn["prod"].stream_arn,
+      aws_dynamodb_table.dyn["dev"].stream_arn,
     ]
   }
 

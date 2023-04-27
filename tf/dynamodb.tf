@@ -5,6 +5,8 @@ resource "aws_dynamodb_table" "dyn" {
   deletion_protection_enabled = false
   hash_key                    = "type"
   range_key                   = "key"
+  stream_enabled = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
 
   attribute {
     name = "key"
@@ -14,4 +16,11 @@ resource "aws_dynamodb_table" "dyn" {
     name = "type"
     type = "S"
   }
+}
+
+resource "aws_ssm_parameter" "dynamodb_table" {
+  for_each                    = local.stages
+  name  = "/${local.prefix}/${each.key}/dynamodb_stream_arn"
+  value = aws_dynamodb_table.dyn[each.key].stream_arn
+  type  = "String"
 }
