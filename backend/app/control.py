@@ -10,7 +10,7 @@ from typing import Dict, List
 
 import boto3
 from botocore.client import logger
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, EndpointConnectionError
 
 from app.config import Config
 
@@ -18,6 +18,9 @@ logger = logging.getLogger("handler_logger")
 logger.setLevel(logging.DEBUG)
 
 config = Config()
+
+ROUTE_SEND_MESSAGE = "send_message"
+ROUTE_CELL_NOTIFY = "cell_notify"
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -27,6 +30,70 @@ class DecimalEncoder(json.JSONEncoder):
         if isinstance(o, set):  # <---resolving sets as lists
             return list(o)
         return super(DecimalEncoder, self).default(o)
+
+
+class Lock:
+    KEY = "lock"
+
+    def __init__(self, name: str) -> None:
+        """Initialize the Lock class."""
+        self.dynamodb = boto3.resource("dynamodb", region_name=config.region)
+        self.table = self.dynamodb.Table(config.table)
+        self.name = name
+
+    @property
+    def current_lock(self):
+        """Get the current lock."""
+        response = self.table.get_item(
+            Key={
+                "key": self.KEY,
+                "type": self.name,
+            }
+        )
+        return int(response.get("Item", {}).get("ttl", -1))
+
+    def lock(self):
+        """Acquire the lock."""
+        if self.current_lock != -1:
+            diff = self.current_lock - int(time.time())
+            if diff < 0:
+                logger.info("Breaking lock!!!!, diff: %s", diff)
+                self.unlock()
+            else:
+                logger.info("Lock is still valid")
+                return False
+        try:
+            self.table.put_item(
+                Item={
+                    "key": self.KEY,
+                    "type": self.name,
+                    "value": "locked",
+                    "ttl": int(time.time()) + 60,
+                },
+                ConditionExpression="attribute_not_exists(#key)",
+                ExpressionAttributeNames={
+                    "#key": "key",
+                },
+            )
+            logger.info("Lock acquired %s", self.name)
+            return True
+        except ClientError as e:
+            if (
+                str(e.response.get("Error", {}).get("Code", ""))
+                != "ConditionalCheckFailedException"
+            ):
+                raise
+            return False
+
+    def unlock(self):
+        """Release the lock."""
+        self.table.delete_item(
+            Key={
+                "key": self.KEY,
+                "type": self.name,
+            },
+        )
+        logger.info("Lock released %s", self.name)
 
 
 class CellState:
@@ -58,6 +125,20 @@ class CellState:
             return []
         return res
 
+    def clear_active(self) -> None:
+        """Clear all the active cells."""
+        self.table.update_item(
+            Key={
+                "key": self.KEY,
+                "type": self.TYPE,
+            },
+            UpdateExpression="set active_cells = :i",
+            ExpressionAttributeValues={
+                ":i": [],
+            },
+            ReturnValues="UPDATED_NEW",
+        )
+
     def _get_random_cell(self):
         """Get a random cell."""
         # 50 x 50 grid
@@ -78,10 +159,7 @@ class CellState:
         """Add an active cell."""
         cell = self._get_random_cell()
         if not cell:
-            return {
-                "action": "info",
-                "message": "All cells are active",
-            }
+            return {}
 
         self.table.update_item(
             Key={
@@ -95,11 +173,8 @@ class CellState:
             ReturnValues="UPDATED_NEW",
         )
         return {
-            "action": "add_active_cell",
-            "message": {
-                "x": int(cell.split(",")[0]),
-                "y": int(cell.split(",")[1]),
-            },
+            "x": int(cell.split(",")[0]),
+            "y": int(cell.split(",")[1]),
         }
 
     def get_active_list(self):
@@ -119,6 +194,7 @@ class Control:
     def __init__(self, connectionId: str) -> None:
         """Initialize the control class."""
         self.state = CellState()
+        self.bcast = Broadcast()
         self.connectionId = connectionId
         self.stage = ""
         self.domain = ""
@@ -132,6 +208,8 @@ class Control:
             "send_alert_boxes": self.action_send_alert_boxes,
             "send_all_active_cells": self.action_send_all_active_cells,
             "send_connection_id": self.action_send_connection_id,
+            "clear_alert_boxes": self.action_clear_alert_boxes,
+            "clear_backend_state": self.action_clear_backend_state,
         }
 
     def parse_message(self, message: Dict) -> None:
@@ -140,7 +218,8 @@ class Control:
         action = message.get("action")
         if action in self.action_map:
             res = self.action_map[action](message)
-            self.send_message(res)
+            if res:
+                self.send_message(res)
         else:
             self.send_message(self._status_err(f"Unknown action {action}"))
 
@@ -149,6 +228,27 @@ class Control:
 
     def action_ping(self, _: Dict):
         return {"action": "info", "message": "pong!"}
+
+    def action_clear_backend_state(self, _: Dict):
+        """Clear the backend state."""
+        self.state.clear_active()
+        pl = self.action_send_all_active_cells(_)
+        self.bcast.send_message(pl)
+
+    def action_clear_alert_boxes(self, _: Dict):
+        """Clear all the alert boxes."""
+        self.table.update_item(
+            Key={
+                "key": "alert_box",
+                "type": self.user,
+            },
+            UpdateExpression="set alert_boxes = :i",
+            ExpressionAttributeValues={
+                ":i": [],
+            },
+            ReturnValues="UPDATED_NEW",
+        )
+        return {"action": "alert_boxes", "message": []}
 
     def action_send_connection_id(self, _: Dict):
         return {"action": "connection_id", "message": self.connectionId}
@@ -334,6 +434,9 @@ class Control:
             if "An error occurred (410)" in str(e):
                 logger.info(f"Force removing connection id '{self.connectionId}'")
                 self.delete_connection()
+        except EndpointConnectionError:
+            logger.info(f"Force removing connection id '{self.connectionId}'")
+            self.delete_connection()
 
 
 class Broadcast:
@@ -341,45 +444,118 @@ class Broadcast:
         """Initialize the broadcast class."""
         self.dynamodb = boto3.resource("dynamodb", region_name=config.region)
         self.table = self.dynamodb.Table(config.table)
+        self.router = SnsRouter()
 
     def iterate_connection_ids(self):
         """Iterate over all connections."""
         response = self.table.scan()
         for item in response.get("Items", []):
             if item.get("key") == "websocket":
-                yield item.get("type")
+                dom = item.get("domain")
+                if not dom == "localhost":
+                    yield str(item.get("type"))
 
-    def cell_notify(self, cell: Dict[str, int], is_new: bool, skip_local: bool = True):
+    def cell_notify(self, cell: Dict[str, int]):
         """Check if the cell is in an alert box."""
         for connection_id in self.iterate_connection_ids():
-            control = Control(str(connection_id))
-            control._set_by_connection_id()
-            if skip_local and control.domain == "localhost":
-                continue
-            if not control.is_alert(cell):
-                continue
-
-            if control.is_alert(cell):
-                if is_new:
-                    self.send_message(
-                        {
-                            "action": "alert",
-                            "message": f"Cell {cell['x']},{cell['y']} is in an alert box",
-                        }
-                    )
-                else:
-                    self.send_message(
-                        {
-                            "action": "alert_ok",
-                            "message": f"Cell {cell['x']},{cell['y']} is clear",
-                        }
-                    )
+            pl = {
+                "connection_id": connection_id,
+                "data": {
+                    "cell": cell,
+                },
+            }
+            self.router.publish(ROUTE_CELL_NOTIFY, pl)
 
     def send_message(self, data):
         """Send a message to all connections."""
         for connection_id in self.iterate_connection_ids():
-            control = Control(str(connection_id))
-            control.send_message(data)
+            pl = {
+                "connection_id": connection_id,
+                "data": data,
+            }
+            self.router.publish(ROUTE_SEND_MESSAGE, pl)
+
+class SnsRouter:
+    """Sns Router Handler for longer jobs."""
+
+    def __init__(self):
+        """Initialize the SnsRouter."""
+        self.sns = boto3.client("sns", region_name="us-east-2")
+        logger.info("Topic ARN: %s", config.sns_topic)
+
+    def publish(self, action: str, message: Dict):
+        """Send a message to the Sns topic."""
+        self.sns.publish(
+            Subject=action,
+            TopicArn=config.sns_topic,
+            Message=json.dumps(message),
+        )
+
+
+class SnsRecordHandler:
+    """Sns Record Handler for longer jobs."""
+
+    def __init__(self, record):
+        """Initialize the SnsRecord."""
+        self.record = record
+        self.action = record["Sns"]["Subject"]
+        self.message = json.loads(record["Sns"]["Message"])
+        self.connection_id = self.message.get("connection_id")
+        self.data = self.message.get("data", {})
+        self.dynamodb = boto3.resource("dynamodb", region_name=config.region)
+        self.table = self.dynamodb.Table(config.table)
+        self.func_map = {
+            ROUTE_SEND_MESSAGE: self.action_send_message,
+            ROUTE_CELL_NOTIFY: self.action_cell_notify,
+        }
+
+    def action_cell_notify(self):
+        if not all([self._check_valid_connection_id(), self._check_valid_data()]):
+            return
+        cell = self.data.get("cell")
+        control = Control(self.connection_id)
+        control._set_by_connection_id()
+        if control.domain == "localhost":
+            logger.info(f"Skipping localhost connection {self.connection_id}")
+            return
+        is_alert = control.is_alert(cell)
+        if not is_alert:
+            logger.info(f"Skipping non-alert connection {self.connection_id} / {cell}")
+            return
+        logger.info(f"Sending alert to {self.connection_id} / {cell}")
+        message = {
+            "action": "alert",
+            "message": f"Cell {cell['x']},{cell['y']} is in an alert box",
+        }
+        control.send_message(message)
+
+    def action_send_message(self):
+        """Send a message to the websocket."""
+        control = Control(self.message["connection_id"])
+        if not all([self._check_valid_connection_id(), self._check_valid_data()]):
+            return
+        control.send_message(self.data)
+
+    def handle_message(self):
+        """Handle the message."""
+        if self.action not in self.func_map:
+            logger.error(f"Unknown action: {self.action}")
+            return
+        self.func_map[self.action]()
+
+    def _check_valid_connection_id(self):
+        """Check if the connection_id is valid."""
+        if not self.connection_id:
+            logger.error("No connection_id provided")
+            return False
+        return True
+
+    def _check_valid_data(self):
+        """Check if the data is valid."""
+        if not self.data:
+            logger.error("No data provided")
+            return False
+        return True
 
 
 def test_send_message():
@@ -419,16 +595,12 @@ def test_broadcast_cell_alert():
             "x": 1,
             "y": 1,
         },
-        is_new=True,
-        skip_local=False,
     )
     broadcast.cell_notify(
         {
             "x": 1,
             "y": 1,
         },
-        is_new=False,
-        skip_local=False,
     )
 
 

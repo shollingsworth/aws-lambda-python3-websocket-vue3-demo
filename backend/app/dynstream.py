@@ -3,10 +3,14 @@
 """DynamoDB Stream Handler."""
 import boto3
 
+import logging
 from app.config import Config
 from app.control import Broadcast
 
 config = Config()
+
+logger = logging.getLogger("handler_logger")
+logger.setLevel(logging.DEBUG)
 
 
 class Record:
@@ -73,25 +77,23 @@ class ActiveCells(Record):
         new = self._image_to_set(self.new_image.get("active_cells", {}))
         return new - old
 
-    @property
-    def removed_active_cells(self):
-        old = self._image_to_set(self.old_image.get("active_cells", {}))
-        new = self._image_to_set(self.new_image.get("active_cells", {}))
-        return old - new
+    #  @property
+    #  def removed_active_cells(self):
+    #      old = self._image_to_set(self.old_image.get("active_cells", {}))
+    #      new = self._image_to_set(self.new_image.get("active_cells", {}))
+    #      return old - new
 
     def send_alerts(self) -> None:
         """Return dict representation."""
         bcast = Broadcast()
         if not self.is_state_record:
+            logger.info("Not a state record, exiting: %s", self.keys)
             return
 
+        logger.info("New active cells: %s, sending broadcast", self.new_active_cells)
         for txt in self.new_active_cells:
             x, y = txt.split(",")
-            bcast.cell_notify({"x": int(x), "y": int(y)}, is_new=True)
-
-        for txt in self.removed_active_cells:
-            x, y = txt.split(",")
-            bcast.cell_notify({"x": int(x), "y": int(y)}, is_new=False)
+            bcast.cell_notify({"x": int(x), "y": int(y)})
 
 
 def main():
@@ -227,7 +229,6 @@ def main():
         print(state_record.event_name)
         print(state_record.keys)
         print(state_record.new_active_cells)
-        print(state_record.removed_active_cells)
 
 
 if __name__ == "__main__":

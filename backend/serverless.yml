@@ -6,6 +6,7 @@ provider:
   name: aws
   runtime: python3.9
   region: "us-east-2"
+  memorySize: 128
   iam:
     role: "arn:aws:iam::668805947503:role/sh-ws-demo-execrole"
   websocketsApiName: "${self:service}-${sls:stage}"
@@ -13,13 +14,16 @@ provider:
   environment:
     STAGE: "${sls:stage}"
     PREFIX: "${file(../config.json):prefix}"
-
+    SNS_TOPIC: ${ssm:/${self:custom.prefix}/${sls:stage}/sns}
 plugins:
   - serverless-python-requirements
   - serverless-offline
 
 custom:
   prefix: "${file(../config.json):prefix}"
+  # schedule_enabled:
+  #   dev: true
+  #   prod: true
   pythonRequirements:
     dockerizePip: true
     noDeploy: []
@@ -27,6 +31,7 @@ custom:
 functions:
   dynamoDBStream:
     handler: handler.dynstream
+    timeout: 30
     events:
       - stream:
           type: dynamodb
@@ -39,8 +44,22 @@ functions:
           route: $connect
       - websocket:
           route: $disconnect
+
   defaultMessage:
     handler: handler.message
     events:
       - websocket:
           route: $default
+
+  schedule_random:
+    handler: handler.schedule_random
+    timeout: 70
+    events:
+      - schedule: rate(1 minute)
+
+  sns_router:
+    handler: handler.sns
+    timeout: 30
+    events:
+      - sns:
+          arn: ${ssm:/${self:custom.prefix}/${sls:stage}/sns}
