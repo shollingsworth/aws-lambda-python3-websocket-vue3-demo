@@ -2,14 +2,25 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-env="${1:-""}"
+stage="${1:-""}"
+if [[ "${stage}" != "prod" && "${stage}" != "dev" && "${stage}" != "local" ]]; then
+    echo "Usage: $0 <stage>"
+    exit 1
+fi
 
-case "${env}" in
+ws= "$(
+    aws cloudformation describe-stacks --stack-name "${prefix}-backend-${stage}"
+        --query "Stacks[0].Outputs[?OutputKey=='${output_key}'].OutputValue" \
+        --output text
+)"
+
+case "${stage}" in
     "local")
         url="ws://localhost:3001/ws?token=${TOKEN}"
         ;;
     "dev")
-        url="wss://xbbv6yjs83.execute-api.us-east-2.amazonaws.com/dev?token=${TOKEN}"
+    "prod")
+        url="${ws}?token=${TOKEN}"
         ;;
     *)
         echo " Didn't match anything"

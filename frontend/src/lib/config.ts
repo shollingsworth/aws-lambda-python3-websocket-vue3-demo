@@ -1,24 +1,27 @@
+//console.log("meta env", import.meta.env)
+
 class AppConfig {
     public stage: string
     constructor() {
-        this.stage = import.meta.env.VITE_STAGE
+        this.stage = import.meta.env.DEV ? 'local' : import.meta.env.VITE_STAGE
+        // console.log("stage", this.stage)
     }
 
     public get redirectUrl(): string {
-        return this.stage === 'local'
+        const url = this.stage === 'local'
             ? 'http://localhost:8080'
-            : this.stage === 'dev'
-            ? 'https://sh-ws-demo-dev.stev0.me'
-            : 'https://sh-ws-demo.stev0.me'
+            : 'https://' + import.meta.env.VITE_FQDN
+        // console.log("redirectUrl", url)
+        return url
     }
 
     public wsUrl(token: string): string {
-        return this.stage === 'local'
+        const url = this.stage === 'local'
             ? 'ws://localhost:3001/ws?token=' + token
-            : this.stage === 'dev'
-            ? 'wss://xbbv6yjs83.execute-api.us-east-2.amazonaws.com/dev?token=' + token
-            : 'wss://yrmpqpmbf7.execute-api.us-east-2.amazonaws.com/prod?token=' + token
+            : import.meta.env.VITE_WEBSOCKET + '?token=' + token
+        // console.log("wsUrl", url)
+        return url
     }
 }
 
-export default new AppConfig()
+export default AppConfig

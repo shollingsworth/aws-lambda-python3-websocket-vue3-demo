@@ -2,6 +2,7 @@
 locals {
   jdata = jsondecode(file("${path.module}/../config.json"))
   prefix = local.jdata.prefix
+  region = local.jdata.region
   repo_name = local.jdata.repo_name
   repo_owner = local.jdata.repo_owner
   domain = local.jdata.domain

@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-2"
+  region = "${local.region}"
   default_tags {
     tags = {
       source-control = "https://github.com/${local.repo_owner}/${local.repo_name}"
@@ -9,6 +9,7 @@ provider "aws" {
 
 provider "aws" {
   alias = "useast"
+  # static, has to be for cloudfront ssl certs
   region = "us-east-1"
   default_tags {
     tags = {

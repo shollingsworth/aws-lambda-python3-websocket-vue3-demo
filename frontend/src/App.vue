@@ -38,7 +38,7 @@ onUnmounted(() => {
     hubListener()
 })
 
-const config = ref(AppConfig)
+const config = ref(new AppConfig())
 </script>
 <template>
     <v-app>

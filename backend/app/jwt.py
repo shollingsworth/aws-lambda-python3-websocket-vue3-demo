@@ -19,15 +19,15 @@ import logging
 from jose import jwk, jwt
 from jose.utils import base64url_decode
 
+from app.config import Config
+config = Config()
+
 logger = logging.getLogger("handler_logger")
 logger.setLevel(logging.DEBUG)
 
 
-region = "us-east-2"
-userpool_id = "us-east-2_y3Mq2SZ54"
-app_client_id = "1tpl86djh4g2uslurljii62sgd"
 keys_url = "https://cognito-idp.{}.amazonaws.com/{}/.well-known/jwks.json".format(
-    region, userpool_id
+    config.region, config.userpool_id
 )
 # instead of re-downloading the public keys every time
 # we download them only on cold start
@@ -116,7 +116,7 @@ class JwtToken:
         if time.time() > claims["exp"]:
             return {}, "Token is expired"
         # and the Audience  (use claims['client_id'] if verifying an access token)
-        if claims["aud"] != app_client_id:
+        if claims["aud"] != config.app_client_id:
             return {}, "Token was not issued for this audience"
         # now we can use the claims
         return claims, "OK"

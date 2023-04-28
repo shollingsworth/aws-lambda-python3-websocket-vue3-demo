@@ -480,7 +480,7 @@ class SnsRouter:
 
     def __init__(self):
         """Initialize the SnsRouter."""
-        self.sns = boto3.client("sns", region_name="us-east-2")
+        self.sns = boto3.client("sns", region_name=config.region)
         logger.info("Topic ARN: %s", config.sns_topic)
 
     def publish(self, action: str, message: Dict):

@@ -24,3 +24,10 @@ resource "aws_ssm_parameter" "dynamodb_table" {
   value = aws_dynamodb_table.dyn[each.key].stream_arn
   type  = "String"
 }
+
+resource "aws_ssm_parameter" "dynamodb_table_name" {
+  for_each                    = local.stages
+  name  = "/${local.prefix}/${each.key}/dynamodb_name"
+  value = aws_dynamodb_table.dyn[each.key].name
+  type  = "String"
+}

@@ -78,6 +78,12 @@ resource "aws_iam_role" "execrole" {
   name = "${local.prefix}-execrole"
 }
 
+resource "aws_ssm_parameter" "execrole" {
+  name  = "/${local.prefix}/execrole"
+  type  = "String"
+  value = aws_iam_role.execrole.arn
+}
+
 output "exec_role" {
   value = aws_iam_role.execrole.arn
 }

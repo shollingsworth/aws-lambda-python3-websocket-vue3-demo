@@ -62,6 +62,19 @@ resource "aws_ssm_parameter" "cognito_user_pool_client_id" {
   value = aws_cognito_user_pool_client.client.id
 }
 
+resource "aws_ssm_parameter" "cognito_fqdn" {
+  name  = "/${local.prefix}/cognito_fqdn"
+  type  = "String"
+  value = "${aws_cognito_user_pool_domain.idp.domain}.auth.${data.aws_region.current.name}.amazoncognito.com"
+}
+
+resource "aws_ssm_parameter" "fe_domain" {
+  for_each = local.stages
+  name  = "/${local.prefix}/${each.key}/fe_domain"
+  type  = "String"
+  value = "${each.value}"
+}
+
 output "cognito_user_pool_id" {
   value = aws_cognito_user_pool.idp.id
 }

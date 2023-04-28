@@ -4,6 +4,8 @@ import type { CognitoUser } from 'amazon-cognito-identity-js'
 import { Auth } from 'aws-amplify'
 import AppConfig from '@/lib/config'
 
+const config = new AppConfig()
+
 export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = ref(false)
     const username = ref('not logged in')
@@ -58,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
             authJwtToken.value = authtok.getJwtToken()
         }
         email.value = idtok?.payload.email
-        wsUrl.value = AppConfig.wsUrl(idJwtToken.value)
+        wsUrl.value = config.wsUrl(idJwtToken.value)
     }
 
     return {

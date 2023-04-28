@@ -8,13 +8,17 @@ provider:
   region: "us-east-2"
   memorySize: 128
   iam:
-    role: "arn:aws:iam::668805947503:role/sh-ws-demo-execrole"
+    role: ${ssm:/${self:custom.prefix}/execrole}
   websocketsApiName: "${self:service}-${sls:stage}"
   websocketsApiRouteSelectionExpression: $request.body.action
   environment:
     STAGE: "${sls:stage}"
     PREFIX: "${file(../config.json):prefix}"
     SNS_TOPIC: ${ssm:/${self:custom.prefix}/${sls:stage}/sns}
+    REGION: ${aws:region}
+    TABLE: ${ssm:/${self:custom.prefix}/${sls:stage}/dynamodb_name}
+    USERPOOL_ID: ${ssm:/${self:custom.prefix}/cognito_user_pool_id}
+    CLIENT_ID: ${ssm:/${self:custom.prefix}/cognito_user_pool_client_id}
 plugins:
   - serverless-python-requirements
   - serverless-offline
